@@ -7,6 +7,7 @@
     "example": "example"
   },
   "scripts": {
+    "start": "node example/express.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -25,7 +26,7 @@
     "ws": "^3.0.0"
   },
   "devDependencies": {
-    "cors": "^2.8.3",
+    "cors": "^2.8.4",
     "express": "^4.15.3"
   }
 }

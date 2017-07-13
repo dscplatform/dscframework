@@ -58,11 +58,11 @@ class Client:
         return (msgtype).to_bytes(1, byteorder="little") + len(hdata).to_bytes(2, byteorder="little") + (hdata + body).encode("utf-8")
 
     def deserialize(self, msg):
-        arr = np.fromstring(msg, dtype=np.uint8)
-        hEnd = (arr[2] << 8) + arr[1] + 3
-        header = json.loads(arr[3:hEnd:1].tostring().decode("utf-8"))
-        body = arr[hEnd::]
-        return (arr[0], header, body)
+        msgtype, hlen = struct.unpack("=BH", msg[0:3])
+        hend = hlen + 3
+        header = json.loads(msg[3:hend].decode("utf-8"))
+        body = msg[hend::]
+        return (msg, header, body)
 
     async def register(self, id, descriptor, call):
         guid = uuid.uuid4()
@@ -77,7 +77,7 @@ class Client:
 
     async def subscribe(self, id, call):
         if id in self.subs:
-            self.subs[id].add(call)
+            self.subs[id].append(call)
         else:
             self.subs[id] = [call]
             await self.send(self.CONST_SUBSCRIBE, {"id": id}, "")
@@ -91,12 +91,16 @@ class Client:
 
     async def broadcast(self, id, head, data):
         if id in self.sensors and self.sensors[id].subscribers is not 0:
+            chid = uuid.uuid4(uuid.RESERVED_MICROSOFT)
             if head is None:
-                head = {"id": id, ch: [uuid.uuid4(uuid.RESERVED_MICROSOFT)], df: {}}
+                head = {"id": id, ch: [chid], df: {}}
             else:
                 head["id"] = id
-                head["ch"].add(uuid.uuid4(uuid.RESERVED_MICROSOFT))
+                head["ch"].append(chid)
             self.send(CONST_BROADCAST, head, data)
+            return chid
+        else:
+            return None
 
     async def update(self, name, data):
         pass
@@ -112,11 +116,11 @@ class Client:
     async def on_rate(self, head, body):
         if head["id"] in self.sensors:
             sensor = self.sensors[head["id"]]
-            rdata = json.loads(body.tostring().decode("utf-8"))
+            rdata = json.loads(body.decode("utf-8"))
             sensor.subscribers = rdata.subscribers
 
     async def on_event(self, head, body):
-        event = json.loads(body.tostring().decode("utf-8"))
+        event = json.loads(body.decode("utf-8"))
         if head["type"] == "gsync":
             self.graph = event;
         if self.event_handler is not None:

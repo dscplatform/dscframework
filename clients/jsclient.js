@@ -155,7 +155,10 @@ class Client extends EventEmitter {
       }
 
       this.send(Constants.BROADCAST, head, data);
+      return head.ch[head.ch.length - 1];
     }
+
+    return null;
   }
 
   subscribe(id, call) {
