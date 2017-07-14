@@ -102,6 +102,9 @@ class Server {
         this.deregisterSubscription(ws, header, msg);
         break;
 
+        default:
+        console.log("got a message with a invalid type", msgType, header);
+
       }
 
     } catch (err) {

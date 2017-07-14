@@ -11,7 +11,6 @@ class Sensor {
     this.input = {};
     this.output = {};
     this.socket = null;
-    console.log("created sensor", name);
   }
 
   setSocket(socket, data) {

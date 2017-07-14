@@ -62,18 +62,18 @@ class Client:
         hend = hlen + 3
         header = json.loads(msg[3:hend].decode("utf-8"))
         body = msg[hend::]
-        return (msg, header, body)
+        return (msgtype, header, body)
 
     async def register(self, id, descriptor, call):
         guid = uuid.uuid4()
         body = json.dumps(descriptor)
         self.sensors[id] = {"guid": guid, "callback": call, "subscribers": 0}
-        self.send(self.CONST_REGISTER, {"id": id}, body)
+        await self.send(self.CONST_REGISTER, {"id": id}, body)
         return guid
 
     async def deregister(self, id):
         del self.sensors[id]
-        self.send(self.CONST_DEREGISTER, {"id": id}, "")
+        await self.send(self.CONST_DEREGISTER, {"id": id}, "")
 
     async def subscribe(self, id, call):
         if id in self.subs:
@@ -90,14 +90,14 @@ class Client:
                 await self.send(self.CONST_UNSUBSCRIBE, {"id": id}, "")
 
     async def broadcast(self, id, head, data):
-        if id in self.sensors and self.sensors[id].subscribers is not 0:
-            chid = uuid.uuid4(uuid.RESERVED_MICROSOFT)
+        if id in self.sensors and self.sensors[id]["subscribers"] is not 0:
+            chid = str(uuid.uuid4())
             if head is None:
                 head = {"id": id, ch: [chid], df: {}}
             else:
                 head["id"] = id
                 head["ch"].append(chid)
-            self.send(CONST_BROADCAST, head, data)
+            await self.send(self.CONST_BROADCAST, head, data)
             return chid
         else:
             return None
@@ -117,7 +117,7 @@ class Client:
         if head["id"] in self.sensors:
             sensor = self.sensors[head["id"]]
             rdata = json.loads(body.decode("utf-8"))
-            sensor.subscribers = rdata.subscribers
+            sensor["subscribers"] = rdata["subscribers"]
 
     async def on_event(self, head, body):
         event = json.loads(body.decode("utf-8"))
