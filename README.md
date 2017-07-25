@@ -20,6 +20,8 @@ a subscriber can also act as a sensor, process the data, and re-broadcast it to 
 A GUID is created for every sensor-broadcast, which is added to a chain, so data can be tracked as it propagates through the network.
 Every client is aware of all registered sensors in the network.
 
+A subscriber can choose to be load balanced.
+
 ## Installation
 
 ## Usage

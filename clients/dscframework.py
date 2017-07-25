@@ -75,12 +75,13 @@ class Client:
         del self.sensors[id]
         await self.send(self.CONST_DEREGISTER, {"id": id}, "")
 
-    async def subscribe(self, id, call):
+    async def subscribe(self, id, *args):
+        call = args[len(args) - 1]
         if id in self.subs:
             self.subs[id].append(call)
         else:
             self.subs[id] = [call]
-            await self.send(self.CONST_SUBSCRIBE, {"id": id}, "")
+            await self.send(self.CONST_SUBSCRIBE, {"id": id, "balance": len(args) > 1 ? args[0] : False}, "")
 
     async def unsubscribe(self, id, call):
         if id in self.subs:

@@ -183,7 +183,7 @@ class Server {
       this.sensors.set(header.id, new Sensor(header.id));
     }
 
-    this.sensors.get(header.id).subscribe(ws);
+    this.sensors.get(header.id).subscribe(ws, header);
   }
 
   deregisterSubscription(ws, header, data) {

@@ -160,13 +160,14 @@ class Client extends EventEmitter {
     return null;
   }
 
-  subscribe(id, call) {
+  subscribe(id, ...args) {
+    var call = args[args.length - 1];
     if(this.subscriptions.has(id)) {
       this.subscriptions.get(id).push(call);
     } else {
       this.subscriptions.set(id, [call]);
       var str = JSON.stringify({ });
-      this.send(Constants.SUBSCRIBE, {id: id}, Util.stringToUint8(str));
+      this.send(Constants.SUBSCRIBE, {id: id, balance: args.length > 1 ? args[0] : false}, Util.stringToUint8(str));
     }
   }
 
