@@ -69,8 +69,8 @@ class Sensor {
   subscribe(ws, header) {
     if (!this.isSubscribed(ws)) {
       var s = new Subscriber(ws, header.balance);
-      this.balanced += this.subscribers[idx].balanced;
-      this.subscribers.push(ws);
+      this.balanced += s.balanced;
+      this.subscribers.push(s);
       this.updateTransmissionRate();
     }
   }

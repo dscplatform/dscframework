@@ -1,4 +1,4 @@
-import Client from "./jsclient";
+const Client = require("./jsclient");
 
 class BrowserClient extends Client {
   constructor(host) {
@@ -6,5 +6,4 @@ class BrowserClient extends Client {
   }
 }
 
-
-export default BrowserClient;
+module.exports = BrowserClient:
