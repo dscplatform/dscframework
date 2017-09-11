@@ -6,4 +6,4 @@ class BrowserClient extends Client {
   }
 }
 
-module.exports = BrowserClient:
+module.exports = BrowserClient;
