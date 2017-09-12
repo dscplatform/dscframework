@@ -1,6 +1,6 @@
 
 
-module.uint8ToJson = (arr) => {
+module.exports.uint8ToJson = (arr) => {
 
   try {
     var str = module.exports.uint8ToString(arr);
