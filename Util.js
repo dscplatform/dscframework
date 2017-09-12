@@ -1,5 +1,17 @@
 
 
+module.uint8ToJson = (arr) => {
+
+  try {
+    var str = module.exports.uint8ToString(arr);
+    return JSON.parse(str);
+
+  } catch (err) {
+    console.log(err);
+  }
+
+  return null;
+};
 
 module.exports.uint8ToString = (array, start) => {
   var out, i, len, c;
