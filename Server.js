@@ -43,9 +43,11 @@ class Server { // TODO add local subscribe and publish ability
 
   getLocalClient() {
     var pair = new SocketEmulatorPair();
+    var cli = new JSClient(pair.sockInput, "localhost");
+    cli.start(() => {});
     pair.connect();
     this.onConnection(pair.sockOutput);
-    return new JSClient(pair.sockInput, "localhost");
+    return cli;
   }
 
   onConnection(ws) {
