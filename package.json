@@ -1,6 +1,6 @@
 {
   "name": "dscframework",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Distributed Sensor Consumer Framework",
   "main": "index.js",
   "directories": {

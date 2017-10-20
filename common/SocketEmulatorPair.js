@@ -13,8 +13,8 @@ class SocketEmulatorPair {
     this.sockOutput.send = (data) => this.sockInput.onmessage(data);
     this.sockInput.close = () => this.disconnect();
     this.sockOutput.close = () => this.disconnect();
-    this.socketInput.onopen();
-    this.socketOutputl.onopen();
+    this.sockInput.onopen();
+    this.sockOutput.onopen();
   }
 
   disconnect() {
