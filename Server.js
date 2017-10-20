@@ -51,7 +51,7 @@ class Server { // TODO add local subscribe and publish ability
   onConnection(ws) {
     this.clients.push(ws);
     ws.send(this.makeGraphSyncPacket());
-    ws.onmessage = (msg) => this.onMessage(ws, msg);
+    ws.onmessage = (msg) => this.onMessage(ws, msg.data);
     ws.onclose = () => this.onClose(ws);
     ws.onerror = () => {};
   }
@@ -78,7 +78,6 @@ class Server { // TODO add local subscribe and publish ability
 
   onMessage(ws, buf) {
     try {
-
       var msg = new Uint8Array(buf);
       var msgType = msg[0];
       var msgHeaderSize = (msg[2] << 8) | msg[1];

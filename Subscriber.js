@@ -10,6 +10,7 @@ class Subscriber {
   send(data) {
     this.socket.send(data);
   }
+  
 }
 
 module.exports = Subscriber;
