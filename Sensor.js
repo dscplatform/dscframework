@@ -58,21 +58,19 @@ class Sensor {
   updateTransmissionRate() {
     if (this.socket === null || this.socket.readyState !== 1) return;
 
-    var str = JSON.stringify({
-      subscribers: this.subscribers.length
-    });
-
+    var str = JSON.stringify({ subscribers: this.subscribers.length });
     var body = Util.stringToUint8(str);
     this.socket.send(Util.makePacket(Constants.RATE, {id: this.name}, body));
   }
 
   subscribe(ws, header) {
-    if (!this.isSubscribed(ws)) {
-      var s = new Subscriber(ws, header.balance);
-      this.balanced += s.balanced;
-      this.subscribers.push(s);
-      this.updateTransmissionRate();
-    }
+    if (this.isSubscribed(ws)) return;
+
+    var s = new Subscriber(ws, header.balance);
+    this.balanced += s.balanced;
+    this.subscribers.push(s);
+
+    this.updateTransmissionRate();
   }
 
   unsubscribe(ws) {

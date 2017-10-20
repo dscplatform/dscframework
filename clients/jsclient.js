@@ -3,6 +3,7 @@ const Util = require("../Util");
 const guid = require("guid");
 const EventEmitter = require("events").EventEmitter;
 const BROWSER = (typeof window !== "undefined" && typeof window.WebSocket !== "undefined");
+const SocketEmulator = require("../common/SocketEmulator");
 var WS;
 "use strict";
 
@@ -25,7 +26,7 @@ class Client extends EventEmitter {
 
   start(call) {
     if (this.socket === null) {
-      this.socket = new WS(this.address);
+      this.socket = WS instanceof SocketEmulator ? WS : new WS(this.address);
       this.socket.binaryType = "arraybuffer";
 
       var open = ()=>{
@@ -33,13 +34,9 @@ class Client extends EventEmitter {
         call();
       };
 
-      if(BROWSER) {
-        this.socket.onopen = open;
-        this.socket.onmessage = (e) => this.onMessage(e.data);
-      } else {
-        this.socket.on("open", open);
-        this.socket.on("message", (e) => this.onMessage(e));
-      }
+      this.socket.onopen = open;
+      this.socket.onmessage = (e) => this.onMessage(e.data);
+      this.socket.onerror = (err) => console.log("jscli sock err", err);
     }
   }
 

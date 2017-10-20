@@ -3,10 +3,12 @@ const guid = require("guid");
 const Sensor = require("./Sensor");
 const Constants = require("./Constants");
 const Util = require("./Util");
+const SocketEmulatorPair = require("./common/SocketEmulatorPair");
+const JSClient = require("./clients/jsclient");
 "use strict";
 
 
-class Server {
+class Server { // TODO add local subscribe and publish ability
 
   constructor(server) {
     this.sensors = new Map();
@@ -22,27 +24,36 @@ class Server {
   }
 
   start() {
-    if (this.wss === null) {
-      this.wss = new WebSocket.Server({ server: this.server });
-      this.wss.on("connection", (ws)=>this.onConnection(ws));
-    }
+    if (this.wss !== null) throw "Already Started";
+    this.wss = new WebSocket.Server({ server: this.server });
+    this.wss.on("connection", (ws) => this.onConnection(ws));
   }
 
   stop(call) {
-    if (this.wss !== null) {
-      this.wss.close((err)=>{
+    if (this.wss === null) throw "Not started";
+
+    this.wss.close(
+      (err) => {
         this.wss = null;
         this.clear();
         call(err);
-      });
-    }
+      }
+    );
+  }
+
+  getLocalClient() {
+    var pair = new SocketEmulatorPair();
+    pair.connect();
+    this.onConnection(pair.sockOutput);
+    return new JSClient(pair.sockInput, "localhost");
   }
 
   onConnection(ws) {
     this.clients.push(ws);
     ws.send(this.makeGraphSyncPacket());
-    ws.on("message", (msg) => this.onMessage(ws, msg));
-    ws.on("close", () => this.onClose(ws));
+    ws.onmessage = (msg) => this.onMessage(ws, msg);
+    ws.onclose = () => this.onClose(ws);
+    ws.onerror = () => {};
   }
 
   /**
@@ -53,9 +64,7 @@ class Server {
   onClose(ws) {
     for (var [key, value] of this.sensors.entries()) {
       value.unsubscribe(ws);
-      if (value.isEmpty()) {
-        this.sensors.delete(key);
-      }
+      if (value.isEmpty()) this.sensors.delete(key);
     }
 
     var len = this.clients.length, i = 0;
@@ -136,16 +145,16 @@ class Server {
   }
 
   deregisterSensor(ws, header, data) {
-    if (this.sensors.has(header.id)) {
-      var s = this.sensors.get(header.id);
-      s.setSocket(null);
-      this.sensors.remove(header.id);
-      var packet = this.makeGraphSyncPacket();
-      var len = this.clients.length, i = 0;
+    if (!this.sensors.has(header.id)) return;
 
-      for(; i < len; i++) {
-        this.clients[i].send(packet);
-      }
+    var s = this.sensors.get(header.id);
+    s.setSocket(null);
+    this.sensors.remove(header.id);
+    var packet = this.makeGraphSyncPacket();
+    var len = this.clients.length, i = 0;
+
+    for(; i < len; i++) {
+      this.clients[i].send(packet);
     }
   }
 
@@ -157,10 +166,9 @@ class Server {
   * @param {object} data {type: broadcast, payload: <data>}
   */
   broadcastSensor(ws, header, data) {
-    if(this.sensors.has(header.id)) {
-      var s = this.sensors.get(header.id);
-      s.broadcast(data);
-    }
+    if(!this.sensors.has(header.id)) return;
+    var s = this.sensors.get(header.id);
+    s.broadcast(data);
   }
 
   /**
@@ -169,10 +177,9 @@ class Server {
   * @this {Server}
   */
   updateSensor(ws, header, data) {
-    if(this.sensors.has(header.id)) {
-      var s = this.sensors.get(header.id);
-      s.update(data);
-    }
+    if(!this.sensors.has(header.id)) return;
+    var s = this.sensors.get(header.id);
+    s.update(data);
   }
 
 
@@ -187,12 +194,11 @@ class Server {
   }
 
   deregisterSubscription(ws, header, data) {
-    if(this.sensors.has(header.id)) {
-      var s = this.sensors.get(header.id);
-      s.unsubscribe(ws);
-      if (s.isEmpty()) {
-        this.sensors.delete(header.id);
-      }
+    if(!this.sensors.has(header.id)) return;
+    var s = this.sensors.get(header.id);
+    s.unsubscribe(ws);
+    if (s.isEmpty()) {
+      this.sensors.delete(header.id);
     }
   }
 
